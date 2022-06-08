@@ -66,7 +66,7 @@ class TestDropout(TestCase):
             'z3': np.array(
                 [[-0.53330145, -5.78898099, -3.04000407, -0.0126646, -0.53330145]]),  # z3
             'd3': np.array([[1, 1, 1, 1, 1]]),
-            'a3': np.array(
+            'aL': np.array(
                 [[0.36974721, 0.00305176, 0.04565099, 0.49683389, 0.36974721]]),
             'keep_probs': 0.7,
             'seed': 1
@@ -77,9 +77,11 @@ class TestDropout(TestCase):
                     self.X,  # x
                     self.parameters['W1'],
                     self.parameters['b1'],
-                    self.cache['d1']
                 ],
-                self.cache['z1']
+                [
+                    self.cache['z1'],
+                    self.cache['d1'],
+                ]
 
             ],  # cache - 1
             [
@@ -87,11 +89,11 @@ class TestDropout(TestCase):
                     self.cache['a1'],
                     self.parameters['W2'],
                     self.parameters['b2'],
-                    self.cache['d2']
-
                 ],
-
-                self.cache['z2']
+                [
+                    self.cache['z2'],
+                    self.cache['d2'],
+                ]
 
             ],  # cache - 2
             [
@@ -99,10 +101,11 @@ class TestDropout(TestCase):
                     self.cache['a2'],
                     self.parameters['W3'],
                     self.parameters['b3'],
-                    self.cache['d3']
-
                 ],
-                self.cache['z3']
+                [
+                    self.cache['z3'],
+                    self.cache['d3'],
+                ]
             ]  # cache - 3
         ]
 
@@ -150,7 +153,7 @@ class TestDropout(TestCase):
                 [1.06071093, 0., 8.21049603, 0., 1.06071093],
                 [0., 0., 0., 0., 0.],
                 [0., 0., 0., 0., 0.]]),
-            'a3': np.array([[0.32266394, 0.49683389, 0.00348883, 0.49683389, 0.32266394]]),
+            'aL': np.array([[0.32266394, 0.49683389, 0.00348883, 0.49683389, 0.32266394]]),
 
             'z1': np.array([
                 [-1.52855314,  3.32524635,  2.13994541,  2.60700654, -0.75942115],
@@ -180,9 +183,11 @@ class TestDropout(TestCase):
                     self.X,  # x
                     self.parameters['W1'],
                     self.parameters['b1'],
-                    self.cache_2['d1']
                 ],
-                self.cache_2['z1']
+                [
+                    self.cache_2['z1'],
+                    self.cache_2['d1'],
+                ]
 
             ],  # cache - 1
             [
@@ -190,22 +195,23 @@ class TestDropout(TestCase):
                     self.cache_2['a1'],
                     self.parameters['W2'],
                     self.parameters['b2'],
-                    self.cache_2['d2']
 
                 ],
-
-                self.cache_2['z2']
-
+                [
+                    self.cache_2['z2'],
+                    self.cache_2['d2']
+                ]
             ],  # cache - 2
             [
                 [
                     self.cache_2['a2'],
                     self.parameters['W3'],
                     self.parameters['b3'],
-                    self.cache_2['d3']
-
                 ],
-                self.cache_2['z3']
+                [
+                    self.cache_2['z3'],
+                    self.cache_2['d3']
+                ]
             ]  # cache - 3
         ]
 
@@ -216,7 +222,7 @@ class TestDropout(TestCase):
             self.X,
             self.parameters['W1'],
             self.parameters['b1'],
-            0.7,
+            self.cache['keep_probs'],
             'relu']
         output = {
             'a1':   self.cache['a1'],
@@ -227,6 +233,7 @@ class TestDropout(TestCase):
 
     def test_linear_activation_forward_with_dropout(self):
         input, output = self.data_linear_activation_forward_with_dropout()
+        np.random.seed(1)
         a, cache = dr.linear_activation_forward_with_dropout(*input)
 
         assert_almost_equal(a, output['a1'])
@@ -245,7 +252,7 @@ class TestDropout(TestCase):
             1,
             'sigmoid']
         output = {
-            'a3':   self.aL,
+            'a3':   self.cache['aL'],
             'cache': self.dropout_cache[2]
         }
 
@@ -253,23 +260,24 @@ class TestDropout(TestCase):
 
     def test_linear_activation_forward_with_dropout_2(self):
         input, output = self.data_linear_activation_forward_with_dropout_2()
+        np.random.seed(1)
         a, cache = dr.linear_activation_forward_with_dropout(*input)
 
         assert_almost_equal(a, output['a3'])
         assert_almost_equal(cache[0][0], self.cache['a2'])
         assert_almost_equal(cache[0][1], self.parameters['W3'])
         assert_almost_equal(cache[0][2], self.parameters['b3'])
-        assert_almost_equal(cache[0][3], self.cache['d3'])
-        assert_almost_equal(cache[1], self.cache['z3'])
+        assert_almost_equal(cache[1][0], self.cache['z3'])
+        assert_almost_equal(cache[1][1], self.cache['d3'])
 
     # -------------------------------  L model forward-------------------------------------
     def data_L_model_forward_with_dropout(self):
         input = [
             self.X,
             self.parameters,
-            0.7,
+            self.cache['keep_probs'],
         ]
-        output = self.aL
+        output = self.cache['aL']
 
         return input, output
 
@@ -282,8 +290,8 @@ class TestDropout(TestCase):
             assert_almost_equal(cache[0][0], self.cache[f'a{l - 1}'])
             assert_almost_equal(cache[0][1], self.parameters[f'W{l}'])
             assert_almost_equal(cache[0][2], self.parameters[f'b{l}'])
-            assert_almost_equal(cache[0][3], self.cache[f'd{l}'])
-            assert_almost_equal(cache[1], self.cache[f'z{l}'])
+            assert_almost_equal(cache[1][0], self.cache[f'z{l}'])
+            assert_almost_equal(cache[1][1], self.cache[f'd{l}'])
 
         assert_almost_equal(aL, output)
 

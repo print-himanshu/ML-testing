@@ -82,8 +82,8 @@ def L_model_backward_with_regulariztion(A_L, y, caches, lambda_var):
 # ---------------------------------Dropout-------------------------------------------------------------------
 
 def linear_activation_forward_with_dropout(a_prev, w, b, keep_prob=0.5, activation='sigmoid'):
-
-    z, l_cache = nn.linear_forward(a_prev, w, b)
+   
+    z, linear_cache = nn.linear_forward(a_prev, w, b)
 
     if activation == 'sigmoid':
         a, a_cache = nn.sigmoid(z)
@@ -97,8 +97,8 @@ def linear_activation_forward_with_dropout(a_prev, w, b, keep_prob=0.5, activati
     a = np.multiply(a, d)
     a /= keep_prob
 
-    linear_cache = [*l_cache, d]
-    cache = (linear_cache, a_cache)
+    activation_cache = [a_cache, d]
+    cache = (linear_cache, activation_cache)
 
     return a, cache
 
