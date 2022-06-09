@@ -1,3 +1,4 @@
+from threading import currentThread
 import numpy as np
 import deep_nn as nn
 
@@ -82,14 +83,13 @@ def L_model_backward_with_regulariztion(A_L, y, caches, lambda_var):
 # ---------------------------------Dropout-------------------------------------------------------------------
 
 def linear_activation_forward_with_dropout(a_prev, w, b, keep_prob=0.5, activation='sigmoid'):
-   
     z, linear_cache = nn.linear_forward(a_prev, w, b)
 
     if activation == 'sigmoid':
-        a, a_cache = nn.sigmoid(z)
+        a, activation_cache = nn.sigmoid(z)
 
     elif activation == 'relu':
-        a, a_cache = nn.relu(z)
+        a, activation_cache = nn.relu(z)
 
     d = np.random.rand(z.shape[0], z.shape[1])
     d = (d < keep_prob).astype(int)
@@ -97,19 +97,19 @@ def linear_activation_forward_with_dropout(a_prev, w, b, keep_prob=0.5, activati
     a = np.multiply(a, d)
     a /= keep_prob
 
-    activation_cache = [a_cache, d]
     cache = (linear_cache, activation_cache)
 
-    return a, cache
+    return a, cache, d
 
 def L_model_forward_with_dropout(X, parameters, keep_prob = 0.5, seed = 1):
     caches = []
+    d_list = []
     L = len(parameters) // 2
     A = X
     np.random.seed(seed)
 
     for l in range(1,L):
-        A, cache = linear_activation_forward_with_dropout(
+        A, cache, d = linear_activation_forward_with_dropout(
             A,
             parameters[f"W{l}"],
             parameters[f'b{l}'],
@@ -117,22 +117,24 @@ def L_model_forward_with_dropout(X, parameters, keep_prob = 0.5, seed = 1):
             activation = 'relu'
         )
         caches.append(cache)
+        d_list.append(d)
 
-    aL, cache = linear_activation_forward_with_dropout(
+    aL, cache, d = linear_activation_forward_with_dropout(
         A,
         parameters[f"W{L}"],
         parameters[f'b{L}'],
         keep_prob = 1
     )
-
+    d_list.append(d)
     caches.append(cache)
+
     assert(aL.shape == (parameters[f"W{L}"].shape[0], X.shape[1]))
-    return aL, caches
+    return aL, caches, d_list
 
 
 # ---------------------------------Backpropgation with dropout-----------------------------------------------
-def linear_backward_with_dropout(dz,linear_cache, keep_prob):
-    a_prev, W, b, d = linear_cache
+def linear_backward_with_dropout(dz,linear_cache, d, keep_prob = 0.5):
+    a_prev, W, b = linear_cache
     m = a_prev.shape[1]
 
     dW = (1/m) * np.dot(dz, a_prev.T)
@@ -148,6 +150,53 @@ def linear_backward_with_dropout(dz,linear_cache, keep_prob):
 
     return da_prev, dW, db
 
+
+def linear_activation_backward_with_dropout(da, cache,d, keep_probs, activation = 'relu'):
+    linear_cache, activation_cache = cache
+
+    if activation == 'sigmoid':
+        dz = nn.sigmoid_backward(da, activation_cache)
+    elif activation == 'relu':
+        dz = nn.relu_backward(da, activation_cache)
+
+    da_prev, dW, db = linear_backward_with_dropout(dz, linear_cache, d ,keep_probs)
+
+    return da_prev, dW, db
+
+def L_model_backward(AL, y, caches, d_list, keep_probs):
+    L = len(caches)
+    m = y.shape[1]
+    grads = {}
+    d = d_list.pop()
+    da_L = - (np.divide(y, AL) - np.divide(1-y, 1-AL))
+
+    current_cache = caches[L-1]
+    d = d_list.pop()
+
+    da, grads[f"dW{L}"], grads[f"db{L}"] = linear_activation_backward_with_dropout(
+        da_L,
+        current_cache,
+        d,
+        keep_probs,
+        activation = 'sigmoid',
+    )
+
+    for i in reversed(range(1,L)):
+        if len(d_list):
+            d = d_list.pop()
+        else:
+            d = 1
+            keep_probs = 1    
+        current_cache = caches[i - 1]
+
+        da, grads[f"dW{i}"], grads[f"db{i}"] = linear_activation_backward_with_dropout(
+        da, 
+        current_cache,
+        d,
+        keep_probs
+    )
+
+    return grads
 
 
 

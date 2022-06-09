@@ -13,7 +13,6 @@ class TestDropout(TestCase):
             [-2.3015387,  1.74481176, -0.7612069,   0.3190391,  -0.24937038],
             [1.46210794, -2.06014071, -0.3224172,  -0.38405435,  1.13376944]])
         self.parameters = {
-
             'W1': np.array([
                 [-1.09989127, -0.17242821, -0.87785842],
                 [0.04221375,  0.58281521, -1.10061918]]),
@@ -78,11 +77,7 @@ class TestDropout(TestCase):
                     self.parameters['W1'],
                     self.parameters['b1'],
                 ],
-                [
                     self.cache['z1'],
-                    self.cache['d1'],
-                ]
-
             ],  # cache - 1
             [
                 [
@@ -90,11 +85,7 @@ class TestDropout(TestCase):
                     self.parameters['W2'],
                     self.parameters['b2'],
                 ],
-                [
                     self.cache['z2'],
-                    self.cache['d2'],
-                ]
-
             ],  # cache - 2
             [
                 [
@@ -102,13 +93,10 @@ class TestDropout(TestCase):
                     self.parameters['W3'],
                     self.parameters['b3'],
                 ],
-                [
                     self.cache['z3'],
-                    self.cache['d3'],
-                ]
             ]  # cache - 3
         ]
-
+        self.y = np.array([[1, 1, 0, 1, 0]])
         self.grads = {
             'dz3': np.array([
                 [-0.67733606, -0.50316611,  0.00348883, -0.50316611,  0.32266394]]),
@@ -143,7 +131,6 @@ class TestDropout(TestCase):
                 [-0.00037647],
                 [-0.00067492]])
         }
-
         self.cache_2 = {
             'a0': self.X,
             'a1': np.array([
@@ -184,11 +171,7 @@ class TestDropout(TestCase):
                     self.parameters['W1'],
                     self.parameters['b1'],
                 ],
-                [
                     self.cache_2['z1'],
-                    self.cache_2['d1'],
-                ]
-
             ],  # cache - 1
             [
                 [
@@ -197,10 +180,7 @@ class TestDropout(TestCase):
                     self.parameters['b2'],
 
                 ],
-                [
                     self.cache_2['z2'],
-                    self.cache_2['d2']
-                ]
             ],  # cache - 2
             [
                 [
@@ -208,13 +188,14 @@ class TestDropout(TestCase):
                     self.parameters['W3'],
                     self.parameters['b3'],
                 ],
-                [
                     self.cache_2['z3'],
-                    self.cache_2['d3']
-                ]
             ]  # cache - 3
         ]
-
+        self.d_list = [
+            self.cache_2['d1'],
+            self.cache_2['d2'],
+            self.cache_2['d3'],
+        ]
     # -------------------------------  Dropout Forward Propagation-------------------------
 
     def data_linear_activation_forward_with_dropout(self):
@@ -234,7 +215,7 @@ class TestDropout(TestCase):
     def test_linear_activation_forward_with_dropout(self):
         input, output = self.data_linear_activation_forward_with_dropout()
         np.random.seed(1)
-        a, cache = dr.linear_activation_forward_with_dropout(*input)
+        a, cache, d = dr.linear_activation_forward_with_dropout(*input)
 
         assert_almost_equal(a, output['a1'])
         for output_cache, result_cache in zip(output['cache'], cache):
@@ -261,14 +242,14 @@ class TestDropout(TestCase):
     def test_linear_activation_forward_with_dropout_2(self):
         input, output = self.data_linear_activation_forward_with_dropout_2()
         np.random.seed(1)
-        a, cache = dr.linear_activation_forward_with_dropout(*input)
+        a, cache, d = dr.linear_activation_forward_with_dropout(*input)
 
         assert_almost_equal(a, output['a3'])
         assert_almost_equal(cache[0][0], self.cache['a2'])
         assert_almost_equal(cache[0][1], self.parameters['W3'])
         assert_almost_equal(cache[0][2], self.parameters['b3'])
-        assert_almost_equal(cache[1][0], self.cache['z3'])
-        assert_almost_equal(cache[1][1], self.cache['d3'])
+        assert_almost_equal(cache[1], self.cache['z3'])
+        assert_almost_equal(d, self.cache['d3'])
 
     # -------------------------------  L model forward-------------------------------------
     def data_L_model_forward_with_dropout(self):
@@ -283,20 +264,21 @@ class TestDropout(TestCase):
 
     def test_L_model_forward_with_dropout(self):
         input, output = self.data_L_model_forward_with_dropout()
-        aL, caches = dr.L_model_forward_with_dropout(*input)
+        aL, caches, d_list = dr.L_model_forward_with_dropout(*input)
 
         for l, cache in enumerate(caches):
             l = l + 1
             assert_almost_equal(cache[0][0], self.cache[f'a{l - 1}'])
             assert_almost_equal(cache[0][1], self.parameters[f'W{l}'])
             assert_almost_equal(cache[0][2], self.parameters[f'b{l}'])
-            assert_almost_equal(cache[1][0], self.cache[f'z{l}'])
-            assert_almost_equal(cache[1][1], self.cache[f'd{l}'])
+            assert_almost_equal(cache[1], self.cache[f'z{l}'])
+
+        for l, d in enumerate(d_list):
+            l = l + 1
+            assert_almost_equal(d, self.cache[f'd{l}'])
 
         assert_almost_equal(aL, output)
-
     # -------------------------------  linear backward-------------------------------------
-
     def data_linear_backward_with_dropout(self):
         input = [
             self.grads['dz3'],
@@ -304,8 +286,8 @@ class TestDropout(TestCase):
                 self.cache_2['a2'],
                 self.parameters['W3'],
                 self.parameters['b3'],
-                self.cache_2['d2']
             ],
+            self.cache_2['d2'],
             self.cache_2['keep_probs']
         ]
 
@@ -318,3 +300,42 @@ class TestDropout(TestCase):
         assert_almost_equal(dW, self.grads['dW3'])
         assert_almost_equal(db, self.grads['db3'])
         assert_almost_equal(da_prev, self.grads['da2'])
+    # -------------------------------  linear activation backward-------------------------------------
+    def data_linear_activation_backward_with_dropout(self):
+        self.grads['da3'] = - (np.divide(self.y, self.cache_2['aL']) - np.divide(1- self.y, 1- self.cache_2['aL']))
+        input = [
+            self.grads['da3'],
+            self.dropout_cache_2[-1],
+            self.cache_2['d2'],
+            self.cache_2['keep_probs'],
+            'sigmoid'
+        ]
+
+        return input
+
+    def test_linear_activation_backward_with_dropout(self):
+        input = self.data_linear_activation_backward_with_dropout()
+        da_prev, dW, db = dr.linear_activation_backward_with_dropout(*input)
+
+        assert_almost_equal(da_prev, self.grads['da2'])
+        assert_almost_equal(dW, self.grads['dW3'])
+        assert_almost_equal(db, self.grads['db3'])
+
+    # -------------------------------  L model backward-------------------------------------
+    def data_L_model_backward(self):
+        input = [
+            self.cache_2['aL'],
+            self.y,
+            self.dropout_cache_2,
+            self.d_list,
+            self.cache_2['keep_probs']
+        ]
+
+        return input
+
+    def test_L_model_backward(self):
+        input = self.data_L_model_backward()
+        grads = dr.L_model_backward(*input)
+
+        for key, value in grads.items():
+            assert_almost_equal(value, self.grads[key])

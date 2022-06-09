@@ -217,7 +217,7 @@ def linear_backward(dz, cache):
 
 
 def sigmoid_backward(da, activation_cache):
-    z = activation_cache
+    z= activation_cache
     a, _ = sigmoid(z)
     dz = da * a * (1-a)
 
