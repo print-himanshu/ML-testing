@@ -56,7 +56,7 @@ def initialize_paraeters_deep(layer_dims):
 
     for l in range(1, L):
         parameters[f"W{l}"] = np.random.randn(
-            layer_dims[l], layer_dims[l-1]) * 0.01
+            layer_dims[l], layer_dims[l-1]) / np.sqrt(layer_dims[l-1])
         parameters[f"b{l}"] = np.zeros((layer_dims[l], 1))
 
     assert(parameters[f"W{l}"].shape == (layer_dims[l], layer_dims[l-1]))
@@ -322,7 +322,7 @@ def update_parameters(parameters, grads, learning_rate):
     return parameters
 
 
-def predict(X, Y, parameters):
+def predict(X, Y, parameters, text = "Training"):
     a2, caches = L_model_forward(X, parameters)
 
     m = Y.shape[1]
@@ -330,8 +330,8 @@ def predict(X, Y, parameters):
 
     output = (a2 > 0.5) * 1.0
 
-    print(f"Accuracy (1st method) = {100 - np.mean(np.abs(output - Y)) * 100}")
-    print(f"Accuracy (2nd method) ={(np.sum(Y == output) / m) * 100} ")
+    #print(f"Accuracy (1st method) = {100 - np.mean(np.abs(output - Y)) * 100}")
+    print(f"{text} Accuracy ={(np.sum(Y == output) / m) * 100} ")
 
     return output
 

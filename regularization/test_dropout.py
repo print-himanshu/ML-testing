@@ -194,7 +194,6 @@ class TestDropout(TestCase):
         self.d_list = [
             self.cache_2['d1'],
             self.cache_2['d2'],
-            self.cache_2['d3'],
         ]
     # -------------------------------  Dropout Forward Propagation-------------------------
 
@@ -215,7 +214,7 @@ class TestDropout(TestCase):
     def test_linear_activation_forward_with_dropout(self):
         input, output = self.data_linear_activation_forward_with_dropout()
         np.random.seed(1)
-        a, cache, d = dr.linear_activation_forward_with_dropout(*input)
+        a, cache, d = dr.dropout_linear_activation_forward(*input)
 
         assert_almost_equal(a, output['a1'])
         for output_cache, result_cache in zip(output['cache'], cache):
@@ -225,31 +224,31 @@ class TestDropout(TestCase):
             for output_activation, result_activation in zip(output_cache[1], result_cache[1]):
                 assert_almost_equal(output_activation, result_activation)
 
-    def data_linear_activation_forward_with_dropout_2(self):
-        input = [
-            self.cache['a2'],
-            self.parameters['W3'],
-            self.parameters['b3'],
-            1,
-            'sigmoid']
-        output = {
-            'a3':   self.cache['aL'],
-            'cache': self.dropout_cache[2]
-        }
+    # def data_linear_activation_forward_with_dropout_2(self):
+    #     input = [
+    #         self.cache['a2'],
+    #         self.parameters['W3'],
+    #         self.parameters['b3'],
+    #         1,
+    #         'sigmoid']
+    #     output = {
+    #         'a3':   self.cache['aL'],
+    #         'cache': self.dropout_cache[2]
+    #     }
 
-        return input, output
+    #     return input, output
 
-    def test_linear_activation_forward_with_dropout_2(self):
-        input, output = self.data_linear_activation_forward_with_dropout_2()
-        np.random.seed(1)
-        a, cache, d = dr.linear_activation_forward_with_dropout(*input)
+    # def test_linear_activation_forward_with_dropout_2(self):
+    #     input, output = self.data_linear_activation_forward_with_dropout_2()
+    #     np.random.seed(1)
+    #     a, cache, d = dr.linear_activation_forward_with_dropout(*input)
 
-        assert_almost_equal(a, output['a3'])
-        assert_almost_equal(cache[0][0], self.cache['a2'])
-        assert_almost_equal(cache[0][1], self.parameters['W3'])
-        assert_almost_equal(cache[0][2], self.parameters['b3'])
-        assert_almost_equal(cache[1], self.cache['z3'])
-        assert_almost_equal(d, self.cache['d3'])
+    #     assert_almost_equal(a, output['a3'])
+    #     assert_almost_equal(cache[0][0], self.cache['a2'])
+    #     assert_almost_equal(cache[0][1], self.parameters['W3'])
+    #     assert_almost_equal(cache[0][2], self.parameters['b3'])
+    #     assert_almost_equal(cache[1], self.cache['z3'])
+    #     assert_almost_equal(d, self.cache['d3'])
 
     # -------------------------------  L model forward-------------------------------------
     def data_L_model_forward_with_dropout(self):
@@ -264,7 +263,8 @@ class TestDropout(TestCase):
 
     def test_L_model_forward_with_dropout(self):
         input, output = self.data_L_model_forward_with_dropout()
-        aL, caches, d_list = dr.L_model_forward_with_dropout(*input)
+        np.random.seed(1)
+        aL, caches, d_list = dr.dropout_L_model_forward(*input)
 
         for l, cache in enumerate(caches):
             l = l + 1
@@ -295,7 +295,7 @@ class TestDropout(TestCase):
 
     def test_linear_backward_with_dropout(self):
         input = self.data_linear_backward_with_dropout()
-        da_prev, dW, db = dr.linear_backward_with_dropout(*input)
+        da_prev, dW, db = dr.dropout_linear_backward(*input)
 
         assert_almost_equal(dW, self.grads['dW3'])
         assert_almost_equal(db, self.grads['db3'])
@@ -315,7 +315,7 @@ class TestDropout(TestCase):
 
     def test_linear_activation_backward_with_dropout(self):
         input = self.data_linear_activation_backward_with_dropout()
-        da_prev, dW, db = dr.linear_activation_backward_with_dropout(*input)
+        da_prev, dW, db = dr.dropout_linear_activation_backward(*input)
 
         assert_almost_equal(da_prev, self.grads['da2'])
         assert_almost_equal(dW, self.grads['dW3'])
@@ -335,7 +335,7 @@ class TestDropout(TestCase):
 
     def test_L_model_backward(self):
         input = self.data_L_model_backward()
-        grads = dr.L_model_backward(*input)
+        grads = dr.dropout_L_model_backward(*input)
 
         for key, value in grads.items():
             assert_almost_equal(value, self.grads[key])
