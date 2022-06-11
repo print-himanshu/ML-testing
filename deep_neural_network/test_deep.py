@@ -175,7 +175,7 @@ class TestDeep(TestCase):
 
         output =  0.2797765635793422
 
-        result = nn.cost(*input)
+        result = nn.cross_entropy_cost(*input)
 
         self.assertAlmostEqual(output, result)
 

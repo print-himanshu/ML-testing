@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.testing import assert_almost_equal
 import dropout_and_regularization as dr
-import deep_nn as nn
+import deep_neural_network.deep_nn as nn
 from unittest import TestCase
 
 
@@ -267,7 +267,7 @@ class TestRegularization(TestCase):
 
     def test_L_model_backward(self):
         input, output = self.data_L_model_backward()
-        result = dr.L_model_backward(*input)
+        result = dr.L_model_backward_with_regulariztion(*input)
 
         for key in result.keys():
             assert_almost_equal(output[key], result[key], decimal=6)

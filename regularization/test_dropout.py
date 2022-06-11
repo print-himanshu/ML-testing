@@ -1,5 +1,5 @@
 from unittest import TestCase
-import deep_nn as nn
+import deep_neural_network.deep_nn as nn
 import dropout_and_regularization as dr
 import numpy as np
 from numpy.testing import assert_almost_equal

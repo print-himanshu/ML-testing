@@ -1,5 +1,5 @@
 import numpy as np
-import deep_nn as nn
+import deep_neural_network.deep_nn as nn
 
 # --------------------------------Regulariaztion------------------------------------------------------------
 
