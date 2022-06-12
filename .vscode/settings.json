@@ -2,7 +2,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./regularization",
+        "./gradient_checking",
         "-p",
         "test_*.py"
     ],
