@@ -2,7 +2,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./gradient_checking",
+        "./optimization_algorithm",
         "-p",
         "test_*.py"
     ],
@@ -13,6 +13,7 @@
         "${workspace_folder}/deep_learning",
         "${workspace_folder}/gradient_checking/gradient_checking.py",
         "${workspace_folder}",
+        "${workspace_folder}/optimization_algorithm",
     ],
 
 }
