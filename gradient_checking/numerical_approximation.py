@@ -65,3 +65,31 @@ def gradient_to_vector(gradients, layer_dims):
         keys, grads, count = dict_to_vector_main(key_b, value_b, keys, grads, count)
 
     return grads, keys
+
+def numerical_approximation(parameters, X, y, layer_dims, epsilon = 1e-7):
+    parameters_value, _ = dictionary_to_vector(parameters)
+    num_parameters = parameters_value.shape[0]
+
+    J_plus = np.zeros((num_parameters, 1))
+    J_minus = np.zeros((num_parameters ,1))
+    grad_approx = np.zeros((num_parameters, 1))
+
+    for i in range(num_parameters):
+        # J(theta + epsilon)
+        theta_plus = np.copy(parameters_value)
+        theta_plus[i][0] += epsilon
+        aL, _ = nn.L_model_forward(X, vector_to_dictionary(theta_plus, layer_dims))
+        J_plus[i] = nn.cross_entropy_cost(aL, y) 
+
+
+        # J(theta - epsilon)
+        theta_minus = np.copy(parameters_value)
+        theta_minus[i][0] -= epsilon
+        aL, _ = nn.L_model_forward(X, vector_to_dictionary(theta_minus, layer_dims))
+        J_minus[i] =  nn.cross_entropy_cost(aL, y)
+
+
+        # Grads approx
+        grad_approx[i] = (J_plus[i] - J_minus[i])/ (2 * epsilon)
+
+    return grad_approx

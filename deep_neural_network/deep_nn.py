@@ -178,7 +178,7 @@ def cross_entropy_cost(A_L, y):
     loss = -(y_if_1 + y_if_0)
     m = y.shape[1]
 
-    cost = (1/m) * np.sum(loss)
+    cost = (1./m) * np.sum(loss)
     cost = np.squeeze(cost)
 
     assert(cost.shape == ())

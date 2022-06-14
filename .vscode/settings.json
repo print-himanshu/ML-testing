@@ -11,7 +11,8 @@
     "python.analysis.autoImportCompletions": true,
     "python.analysis.extraPaths": [
         "${workspace_folder}/deep_learning",
-        "${workspace_folder}"
+        "${workspace_folder}/gradient_checking/gradient_checking.py",
+        "${workspace_folder}",
     ],
 
 }

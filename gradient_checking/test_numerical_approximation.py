@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.testing import assert_almost_equal
-import gradient_checking as gc
+import numerical_approximation as na
 from unittest import TestCase
 
 
@@ -11,7 +11,7 @@ class Test_Gradient(TestCase):
             [-1.07296862,  0.86540763, -2.3015387],
             [1.74481176, -0.7612069,  0.3190391],
             [-0.24937038,  1.46210794, -2.06014071]])
-        self.y = np.array([1, 1, 0])
+        self.y = np.array([[1, 1, 0]])
         self.parameters = {
             'W1': np.array([
                 [-0.3224172, -0.38405435,  1.13376944, -1.09989127],
@@ -149,14 +149,14 @@ class Test_Gradient(TestCase):
 
     def test_dictionary_to_vector(self):
         output = self.data_dictionary_to_vector()
-        theta, keys = gc.dictionary_to_vector(self.parameters)
+        theta, keys = na.dictionary_to_vector(self.parameters)
 
         assert_almost_equal(theta, output['theta'])
         self.assertListEqual(keys, output['keys'])
 
     # ---------------------- Vector to Dictionary ------------------------
     def test_vector_to_dictionary(self):
-        parameters = gc.vector_to_dictionary(self.theta, self.layer_dims)
+        parameters = na.vector_to_dictionary(self.theta, self.layer_dims)
 
         for key, value in parameters.items():
             assert_almost_equal(parameters[key], self.parameters[key])
@@ -212,8 +212,8 @@ class Test_Gradient(TestCase):
             [2.24404238],
             [0.21225753]])
         keys = ['dW1'] * 20 + ['db1'] * 5 \
-            +  ['dW2'] * 15 + ['db2'] * 3 \
-            +  ['dW3'] * 3  + ['db3'] * 1
+            + ['dW2'] * 15 + ['db2'] * 3 \
+            + ['dW3'] * 3 + ['db3'] * 1
 
         output = {
             'keys': keys,
@@ -223,8 +223,74 @@ class Test_Gradient(TestCase):
 
     def test_gradient_to_vector(self):
         output = self.data_gradient_to_vector()
-        grads, keys = gc.gradient_to_vector(self.grads, self.layer_dims)
+        grads, keys = na.gradient_to_vector(self.grads, self.layer_dims)
 
         assert_almost_equal(grads, output['grads'])
         self.assertListEqual(keys, output['keys'])
-        
+
+    # ---------------------- Numerical Approximation ---------------------
+    def data_numerical_approximation(self):
+        input = [
+            self.parameters,
+            self.X,
+            self.y,
+            self.layer_dims,
+            1e-7
+        ]
+
+        output = np.array([
+            [-0.37347774],
+            [-1.47903191],
+            [0.17596133],
+            [-1.33685053],
+            [-0.01967497],
+            [-0.08573522],
+            [0.01188466],
+            [-0.07674277],
+            [0.03916037],
+            [-0.05539735],
+            [0.04872715],
+            [-0.09359393],
+            [-0.05337767],
+            [-0.21138479],
+            [0.02514863],
+            [-0.19106371],
+            [0.],
+            [0.],
+            [0.],
+            [0.],
+            [0.63290795],
+            [0.03725111],
+            [-0.06401301],
+            [0.09045546],
+            [0.],
+            [0.],
+            [0.],
+            [0.],
+            [0.],
+            [0.],
+            [0.],
+            [0.],
+            [0.],
+            [0.],
+            [0.],
+            [0.9158017],
+            [0.02451541],
+            [-0.10797954],
+            [0.90281879],
+            [0.],
+            [0.],
+            [0.],
+            [0.19763344],
+            [0.],
+            [0.],
+            [2.24404227],
+            [0.21225742]])
+
+        return input, output
+
+    def test_numerical_approximation(self):
+        input, output = self.data_numerical_approximation()
+        result = na.numerical_approximation(*input)
+
+        assert_almost_equal(output, result, decimal = 6)
