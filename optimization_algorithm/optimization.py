@@ -1,5 +1,7 @@
 import numpy as np
 from math import floor
+import sklearn.datasets as sd
+import matplotlib.pyplot as plt
 
 
 def mini_batch_random(X, y, mini_batch_size=64, seed=0):
@@ -169,3 +171,16 @@ def update_parameters_with_adam(parameters, grads, v, s, epoch, alpha = 0.01, be
 
 
     return parameters, v, s
+
+def load_dataset():
+    np.random.seed(3)
+    train_X, train_Y = sd.make_moons(n_samples=300, noise=.2) #300 #0.2 
+    # Visualize the data
+    plt.scatter(train_X[:, 0], train_X[:, 1], c=train_Y, s=40, cmap=plt.cm.Spectral)
+    train_X = train_X.T
+    train_Y = train_Y.reshape((1, train_Y.shape[0]))
+    
+    return train_X, train_Y
+
+if __name__ == '__main__':
+    x, y = load_dataset()

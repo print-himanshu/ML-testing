@@ -56,7 +56,7 @@ def initialize_paraeters_deep(layer_dims):
 
     for l in range(1, L):
         parameters[f"W{l}"] = np.random.randn(
-            layer_dims[l], layer_dims[l-1]) / np.sqrt(layer_dims[l-1])
+            layer_dims[l], layer_dims[l-1]) * np.sqrt(2 / layer_dims[l-1])
         parameters[f"b{l}"] = np.zeros((layer_dims[l], 1))
 
     assert(parameters[f"W{l}"].shape == (layer_dims[l], layer_dims[l-1]))
@@ -169,19 +169,21 @@ def L_model_forward(X, parameters):
     return A_L, caches
 
 # ----------------------Cost--------------------------------------
-
-
-def cross_entropy_cost(A_L, y):
+def cross_entropy_loss(A_L, y):
     y_if_1 = np.multiply(y, np.log(A_L))
     y_if_0 = np.multiply((1-y), np.log(1-A_L))
 
-    loss = -(y_if_1 + y_if_0)
+    loss = -np.sum(y_if_1 + y_if_0)
+    loss = np.squeeze(loss)
+
+    assert(loss.shape == ())
+    return loss
+
+
+def cross_entropy_cost(A_L, y):
     m = y.shape[1]
+    cost = (1./m) * cross_entropy_loss(A_L, y)
 
-    cost = (1./m) * np.sum(loss)
-    cost = np.squeeze(cost)
-
-    assert(cost.shape == ())
     return cost
 
 # ---------------------Backward Propagation-----------------------

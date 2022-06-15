@@ -96,13 +96,20 @@ class TestOptimization(TestCase):
         grads = {
             "dW1": dW1, "db1": db1, "dW2": dW2, "db2": db2}
         v = {
-            'dW1': np.array([[0.,  0.,  0.],
-                             [0.,  0.,  0.]]), 'dW2': np.array([[0.,  0.,  0.],
-                                                                [0.,  0.,  0.],
-                                                                [0.,  0.,  0.]]), 'db1': np.array([[0.],
-                                                                                                   [0.]]), 'db2': np.array([[0.],
-                                                                                                                            [0.],
-                                                                                                                            [0.]])}
+            'dW1': np.array([
+                [0.,  0.,  0.],
+                [0.,  0.,  0.]]),
+            'dW2': np.array([
+                [0.,  0.,  0.],
+                [0.,  0.,  0.],
+                [0.,  0.,  0.]]),
+            'db1': np.array([
+                [0.],
+                [0.]]),
+            'db2': np.array([
+                [0.],
+                [0.],
+                [0.]])}
 
         input = [
             parameters,
